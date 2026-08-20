@@ -1,0 +1,13 @@
+# Ignore executables and build artifacts
+*.exe
+*.obj
+*.o
+output.txt
+output_test*.asm
+output_test*.txt
+
+# Ignore IDE settings
+.vscode/
+
+# Ignore local private memory (if applicable)
+.gemini/tmp/
