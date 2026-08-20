@@ -93,6 +93,62 @@ Traverses the AST to emit x86-64 assembly.
 | `RBP` | Frame pointer |
 | `RSP` | Stack pointer |
 
+### Supported Assembly Instructions
+The compiler generates x86-64 assembly in Intel syntax. Below are the core instructions utilized:
+
+| Instruction | Description |
+| :--- | :--- |
+| `mov` | Move data (register to register, immediate to register, memory to register/memory). |
+| `push` | Push value onto the stack. |
+| `pop` | Pop value from the stack to a register. |
+| `add` | Integer addition. |
+| `sub` | Integer subtraction. |
+| `imul` | Signed integer multiplication. |
+| `idiv` | Signed integer division (requires `cqo` for sign extension). |
+| `cmp` | Compare two operands (sets EFLAGS). |
+| `set[cond]` | Sets byte to 1 if condition met (e.g., `setl` for less, `setg` for greater). |
+| `movzx` | Move with zero-extension (used for comparison results). |
+| `je` | Jump if equal (used for control flow branching). |
+| `jmp` | Unconditional jump. |
+| `call` | Call a function. |
+| `ret` | Return from function. |
+
+### Grammatical Hierarchy & Parsing Logic
+The compiler uses a **Recursive Descent Parser**, where the grammatical structure is decomposed into a hierarchical set of functions. Each function handles a specific non-terminal symbol in the grammar.
+
+#### The Grammatical Hierarchy
+```text
+Program (Root)
+ └── Function[]
+      ├── Parameters
+      └── Statement[] (Body)
+           ├── Expression (Condition, Assignment value, Return value)
+           └── Nested Statements (If-body, While-body)
+```
+
+#### Parsing Breakdown
+| Level | Parsing Logic |
+| :--- | :--- |
+| **Program** | Iteratively calls `parse_function()` until `TOKEN_EOF` is encountered. |
+| **Function** | Expects `int` keyword, function name, `(`, parameter list, and a block of statements (`{...}`). |
+| **Statement** | Based on the current token, dispatches to specific parsers: `int` → `STMT_VAR_DECL`, `return` → `STMT_RETURN`, `if` → `STMT_IF`, `while` → `STMT_WHILE`, or identifier → `STMT_ASSIGN`. |
+| **Expression** | Implements operator precedence using chained function calls: `Expression` → `Comparison` → `Addition` → `Multiplication` → `Primary`. |
+
+---
+
+### Variable Management
+*File: `codegen.c`*
+
+The compiler maintains a simple symbol table for local variables and parameters within each function scope.
+
+- **Storage Structure**: Variables are tracked in a static array `variables[MAX_VARIABLES]`, where each entry holds the variable's name and its assigned stack offset.
+- **Allocation (`add_variable`)**: 
+    - When the parser encounters a variable declaration (`STMT_VAR_DECL`), `add_variable` is called.
+    - Each `int` is assigned 8 bytes on the stack.
+    - `stack_size` is incremented by 8, and the current `stack_size` value is stored as the variable's negative offset from the `RBP` frame pointer.
+- **Lookup (`find_variable`)**: During code generation, when a variable is used, `find_variable` searches the `variables` array by name to retrieve its pre-calculated `RBP`-relative offset.
+- **Assembly Generation (`print_memory`)**: Variables are accessed in assembly using the `QWORD PTR [rbp-offset]` syntax, ensuring consistent access regardless of the current stack state during expression evaluation.
+
 ---
 
 ## 4. File Directory Tour
