@@ -10,7 +10,7 @@ The primary goals of this project are:
 
 ## Project Structure
 
-- `GEMIN.md`: Custom instructions and guidelines for Gemini CLI interactions in this repository.
+- `GEMINI.md`: Custom instructions and guidelines for Gemini CLI interactions in this repository.
 - `README.md`: Project overview and documentation.
 
 ## License
