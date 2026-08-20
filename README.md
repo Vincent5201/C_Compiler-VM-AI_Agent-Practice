@@ -49,13 +49,23 @@ The compilation pipeline operates as a sequence of deterministic transformations
 
 ## 2. Supported Language Features
 
-`mini_cc` supports a subset of C designed to cover basic computation, conditional branching, iteration, and functional abstraction:
-*   **Data Types**: 64-bit integer types (`int` implicitly treated as 64-bit).
-*   **Variable Declarations & Assignments**: Declaration-first scoped local variables (e.g., `int x; x = 10;`).
-*   **Arithmetic Expressions**: Addition (`+`), subtraction (`-`), multiplication (`*`), and integer division (`/`) with standard precedence.
-*   **Relational Operations**: Comparisons (`==`, `!=`, `<`, `>`, `<=`, `>=`).
-*   **Control Flow**: `if` / `else` conditional blocks and `while` loop iterations.
-*   **Functions & Scope**: Multiple arguments (up to 6, passed via standard ABI registers), recursive calls, and early exit returning (`return`).
+`mini_cc` supports a subset of C. Below is the reference of supported syntax:
+
+### Keywords
+- `int`: Type declaration for local variables and function parameters.
+- `return`: Exit function and return expression value.
+- `if`, `else`: Conditional branching.
+- `while`: Iterative loop structure.
+
+### Operators & Delimiters
+| Category | Supported Syntax |
+| :--- | :--- |
+| **Arithmetic** | `+`, `-`, `*`, `/` |
+| **Comparison** | `==`, `!=`, `<`, `>`, `<=`, `>=` |
+| **Assignment** | `=` |
+| **Delimiters** | `(`, `)`, `{`, `}`, `,`, `;` |
+
+*Note: All integers are treated as 64-bit.*
 
 ---
 
