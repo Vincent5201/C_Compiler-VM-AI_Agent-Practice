@@ -1,6 +1,19 @@
 # `mini_cc`: An Educational Compiler & Virtual Machine
 
-Welcome to **`mini_cc`**, an educational, self-contained compiler and x86-64 instruction set emulator implemented entirely from scratch in pure C. It compiles a structured subset of C into Intel-syntax x86-64 assembly targeting the Linux System V AMD64 ABI, and then executes it using a built-in custom virtual machine (interpreter).
+## Project Background & Workflow
+This repository is an educational project developed to explore the fundamentals of compiler engineering and virtual machine (VM) design.
+
+### Why and How this was created:
+*   **Purpose**: To revisit and deepen knowledge of compiler construction and VM architecture.
+*   **Workflow**: This project was built using the **Gemini CLI** agent as my primary pair programmer. I acted as the lead engineer, focusing on code review and architectural understanding, while delegating repetitive tasks and implementation details to the AI.
+*   **AI Constraints & Strategy**: As I am using the free tier of Gemini, I encountered token limits within the CLI. To work around this, I utilized a hybrid approach:
+    *   **Web-based AI**: Used to generate complex code blocks, research algorithms, and draft initial structures when CLI tokens were constrained.
+    *   **Gemini CLI**: Used for final implementation, file management, repository synchronization, writing educational comments, and restructuring the README to ensure code quality and project structure.
+*   **Manual Oversight**: My role was primarily to review the AI-generated output, verify the compiler logic, and ensure the educational quality of this documentation.
+
+---
+
+Welcome to **`mini_cc`**, a lightweight, self-contained C compiler implemented entirely from scratch in pure C. It compiles a structured subset of C into Intel-syntax x86-64 assembly targeting the Linux System V AMD64 ABI, and then executes it using a built-in custom virtual machine (interpreter).
 
 As an **educational playground**, `mini_cc` completely avoids third-party generator tools like Flex (lexical scanners) or Bison/Yacc (LALR parsers). Writing every component by hand offers a highly transparent, ground-up perspective on compiler engineering, structural parsing, abstract syntax trees (AST), stack-machine code generation, and instruction set emulation.
 
