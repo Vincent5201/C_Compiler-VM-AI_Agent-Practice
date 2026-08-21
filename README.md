@@ -1,29 +1,12 @@
-# `mini_cc`: An Educational Compiler & Virtual Machine
+# C-Compiler & VM: A Free-Tier AI Agent Practice
 
 ## Project Background
-This is a fun, hands-on experiment. I wanted to see what I could build using AI Agents, so I decided to tackle something classic: a C compiler and a Virtual Machine (VM) to run it. It’s a great way to brush up on low-level programming concepts like lexical analysis, parsing, and assembly execution—all built from scratch.
-
-This repository serves as both a personal educational playground for compiler engineering and a log of my experiment in AI-assisted development.
+I wanted to learn how AI Agents work, but I don't have a paid AI subscription. So, I decided to build a custom C-like compiler and Virtual Machine from scratch using free AI tools, using this project to learn agentic workflows and refresh my compiler fundamentals at the same time.
 
 ### Development Workflow
-Building this project was a collaborative effort between myself and an AI pair programmer.
-*   **The Approach**: Instead of using heavy-duty tools like Flex or Bison, I built every part of the compiler and VM by hand. This made it much easier to actually understand what's happening at every step—scanning, parsing, generating assembly, and running the VM.
-*   **The Workflow**: My role was to define the goal and verify the results. I had to be practical about AI usage:
-    *   **Web-based AI**: Since I'm using the free version of AI, I often ran into token limits in the CLI. When I needed to generate complex code, I used the web version of the AI to get the code I needed.
-    *   **Gemini CLI**: Once I had the code ready, I pasted it back into the CLI environment. The CLI agent then helped me organize the files, write educational comments, and restructure this documentation.
-*   *Note*: This setup wasn't perfect, but it was a very effective way to get things done with the free tools available.
-
----
-
-## Table of Contents
-1. [Overall Pipeline & Architecture](#1-overall-pipeline--architecture)
-2. [Language & Grammar Specifications](#2-language--grammar-specifications)
-3. [Phase 1: Lexical Analysis (The Scanner)](#3-phase-1-lexical-analysis-the-scanner)
-4. [Phase 2: Syntactic Analysis (The Parser)](#4-phase-2-syntactic-analysis-the-parser)
-5. [Phase 3: Code Generation (The CodeGen)](#5-phase-3-code-generation-the-codegen)
-6. [Phase 4: Execution (The Assembly Interpreter/VM)](#6-phase-4-execution-the-assembly-interpretervm)
-7. [Step-by-Step Educational Walkthrough](#7-step-by-step-educational-walkthrough)
-8. [Build, Test, and Execution Guide](#8-build-test-and-execution-guide)
+The entire system was handcrafted without tools like Flex or Bison. Because I was using free-tier AI with strict rate and token limits, I used a split workflow:
+* Web AI: Used for heavy code generation and complex logic, avoiding context limits in the CLI.
+* Gemini CLI: Used directly in the terminal to structure files, refactor code, and write documentation with the generated code.
 
 ---
 
