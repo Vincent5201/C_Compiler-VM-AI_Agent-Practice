@@ -6,7 +6,7 @@
 # Compiler and Flags
 CC = gcc
 CFLAGS = -std=c11 -Wall -Wextra
-SRCS = main.c compiler.c scanner.c parser.c codegen.c
+SRCS = main.c compiler.c scanner.c parser.c codegen.c interpreter.c
 TARGET = mini_cc
 
 # OS Detection
@@ -43,6 +43,9 @@ test: $(BINARY)
 	@echo ------------------------------------------------------------------------------
 	@echo [Test 4] Compiling tests/test4.c ...
 	./$(BINARY) tests/test4.c
+	@echo ------------------------------------------------------------------------------
+	@echo [Test 5] Compiling tests/test5.c ...
+	./$(BINARY) tests/test5.c
 	@echo ==============================================================================
 	@echo All tests compiled successfully!
 	@echo Generated assembly was written to output.txt.

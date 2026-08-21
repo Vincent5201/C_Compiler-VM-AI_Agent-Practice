@@ -8,6 +8,7 @@
  * Register Information
  * ========================================================= */
 
+/* x86-64 System V ABI argument registers used for passing the first 6 parameters */
 static const char *argument_registers[] = {
     "rdi",
     "rsi",
@@ -21,24 +22,25 @@ static const char *argument_registers[] = {
 #define MAX_VARIABLES 256
 
 /* =========================================================
- * Stack Variable
+ * Stack Variable Struct
  * ========================================================= */
 
 typedef struct {
     char name[64];
-    int offset;
+    int offset; /* Negative offset from RBP */
 } Variable;
 
 static Variable variables[MAX_VARIABLES];
 static int variable_count;
 
-static int stack_size;
-static int label_count;
+static int stack_size; /* Aggregated stack usage of current function */
+static int label_count; /* Global counter for unique jump labels */
 
 /* =========================================================
  * Labels
  * ========================================================= */
 
+/* Returns a globally unique branch label index (e.g. .L0, .L1...) */
 static int new_label(void)
 {
     return label_count++;
@@ -48,12 +50,14 @@ static int new_label(void)
  * Variable Management
  * ========================================================= */
 
+/* Resets state before compiling a new function */
 static void reset_variables(void)
 {
     variable_count = 0;
     stack_size = 0;
 }
 
+/* Returns the RBP-relative stack offset for a variable, or -1 if not declared */
 static int find_variable(const char *name)
 {
     int i;
@@ -72,6 +76,7 @@ static int find_variable(const char *name)
     return -1;
 }
 
+/* Allocates a stack offset (8-byte alignment) for a variable */
 static void add_variable(const char *name)
 {
     if (find_variable(name) != -1)
@@ -82,11 +87,7 @@ static void add_variable(const char *name)
         exit(1);
     }
 
-    /*
-     * Each int is conceptually 8 bytes here.
-     *
-     * This is a simplified compiler.
-     */
+    /* Allocate exactly 8 bytes (64-bit integer standard in this toy compiler) */
     stack_size += 8;
 
     strcpy(
@@ -104,6 +105,7 @@ static void add_variable(const char *name)
  * Scan Statements for Local Variables
  * ========================================================= */
 
+/* Traverses the AST nested structures to pre-allocate stack locations for all variables */
 static void collect_variables(
     Statement **statements,
     int count)
@@ -119,9 +121,7 @@ static void collect_variables(
             add_variable(stmt->name);
         }
 
-        /*
-         * Variables inside if
-         */
+        /* Collect inside conditional branching structures */
         if (stmt->type == STMT_IF) {
 
             collect_variables(
@@ -135,9 +135,7 @@ static void collect_variables(
             );
         }
 
-        /*
-         * Variables inside while
-         */
+        /* Collect inside loop structures */
         if (stmt->type == STMT_WHILE) {
 
             collect_variables(
@@ -166,7 +164,8 @@ static void print_memory(
 /* =========================================================
  * Expression Generation
  *
- * Result is always stored in RAX.
+ * Implements a classic stack-machine code generator. Evaluated
+ * expression results are always produced or left inside the RAX register.
  * ========================================================= */
 
 static void generate_expression(
@@ -178,9 +177,7 @@ static void generate_expression(
     if (expr == NULL)
         return;
 
-    /*
-     * Integer
-     */
+    /* Base Case: Numeric Constant */
     if (expr->type == EXPR_NUMBER) {
 
         fprintf(
@@ -192,9 +189,7 @@ static void generate_expression(
         return;
     }
 
-    /*
-     * Variable
-     */
+    /* Base Case: Local Variable Reference */
     if (expr->type == EXPR_VARIABLE) {
 
         int offset;
@@ -228,62 +223,40 @@ static void generate_expression(
         return;
     }
 
-    /*
-     * Binary expression
-     *
-     * left OP right
-     */
+    /* Recursive Case: Binary Operator */
     if (expr->type == EXPR_BINARY) {
 
-        /*
-         * Generate left.
-         *
-         * Result:
-         *     RAX
-         */
+        /* Evaluate left side first (Result in RAX) */
         generate_expression(
             expr->left,
             out
         );
 
-        /*
-         * Save left on stack.
-         */
+        /* Push left RAX value onto the stack */
         fprintf(
             out,
             "    push rax\n"
         );
 
-        /*
-         * Generate right.
-         *
-         * Result:
-         *     RAX
-         */
+        /* Evaluate right side (Result in RAX) */
         generate_expression(
             expr->right,
             out
         );
 
-        /*
-         * Right → RCX
-         */
+        /* Move right result into RCX */
         fprintf(
             out,
             "    mov rcx, rax\n"
         );
 
-        /*
-         * Left → RAX
-         */
+        /* Pop left result back into RAX */
         fprintf(
             out,
             "    pop rax\n"
         );
 
-        /*
-         * Arithmetic
-         */
+        /* Perform requested arithmetic instruction */
         if (strcmp(expr->op, "+") == 0) {
 
             fprintf(
@@ -310,9 +283,7 @@ static void generate_expression(
 
         else if (strcmp(expr->op, "/") == 0) {
 
-            /*
-             * RAX / RCX
-             */
+            /* Sign-extend RAX into RDX before executing idiv */
             fprintf(
                 out,
                 "    cqo\n"
@@ -324,9 +295,7 @@ static void generate_expression(
             );
         }
 
-        /*
-         * Comparison
-         */
+        /* Perform comparative operations using setcc instruction */
         else {
 
             fprintf(
@@ -392,13 +361,7 @@ static void generate_expression(
                 );
             }
 
-            /*
-             * Convert AL:
-             *
-             * 0 / 1
-             *
-             * into RAX.
-             */
+            /* Zero-extend 8-bit AL condition back into 64-bit RAX */
             fprintf(
                 out,
                 "    movzx rax, al\n"
@@ -408,9 +371,7 @@ static void generate_expression(
         return;
     }
 
-    /*
-     * Function call
-     */
+    /* Recursive Case: Function Call */
     if (expr->type == EXPR_CALL) {
 
         if (expr->arg_count > MAX_ARGUMENTS) {
@@ -428,12 +389,7 @@ static void generate_expression(
             return;
         }
 
-        /*
-         * Evaluate each argument.
-         *
-         * This simple version assumes
-         * arguments are simple expressions.
-         */
+        /* Evaluate and load parameters sequentially into System V standard ABI registers */
         for (i = 0;
              i < expr->arg_count;
              i++) {
@@ -456,11 +412,6 @@ static void generate_expression(
             expr->name
         );
 
-        /*
-         * Function return value is already
-         * in RAX.
-         */
-
         return;
     }
 }
@@ -480,9 +431,7 @@ static void generate_statements(
 
         Statement *stmt = statements[i];
 
-        /*
-         * Variable declaration
-         */
+        /* Local variable block offset log */
         if (stmt->type == STMT_VAR_DECL) {
 
             int offset;
@@ -501,11 +450,7 @@ static void generate_statements(
             continue;
         }
 
-        /*
-         * Assignment
-         *
-         * x = expression;
-         */
+        /* Assignment operation */
         if (stmt->type == STMT_ASSIGN) {
 
             int offset;
@@ -545,9 +490,7 @@ static void generate_statements(
             continue;
         }
 
-        /*
-         * return
-         */
+        /* Return from function (epilogue translation) */
         if (stmt->type == STMT_RETURN) {
 
             generate_expression(
@@ -573,9 +516,7 @@ static void generate_statements(
             continue;
         }
 
-        /*
-         * if
-         */
+        /* Conditional Branch: If Statement */
         if (stmt->type == STMT_IF) {
 
             int else_label;
@@ -584,9 +525,7 @@ static void generate_statements(
             else_label = new_label();
             end_label = new_label();
 
-            /*
-             * condition → RAX
-             */
+            /* Evaluate boolean condition */
             generate_expression(
                 stmt->condition,
                 out
@@ -597,15 +536,14 @@ static void generate_statements(
                 "    cmp rax, 0\n"
             );
 
+            /* Branch to else block if condition is false */
             fprintf(
                 out,
                 "    je .L%d\n",
                 else_label
             );
 
-            /*
-             * then
-             */
+            /* Generate statements for "then" block */
             generate_statements(
                 stmt->body,
                 stmt->body_count,
@@ -618,9 +556,7 @@ static void generate_statements(
                 end_label
             );
 
-            /*
-             * else
-             */
+            /* Generate statements for "else" block */
             fprintf(
                 out,
                 ".L%d:\n",
@@ -642,9 +578,7 @@ static void generate_statements(
             continue;
         }
 
-        /*
-         * while
-         */
+        /* Iterative Loop: While Statement */
         if (stmt->type == STMT_WHILE) {
 
             int begin_label;
@@ -653,18 +587,14 @@ static void generate_statements(
             begin_label = new_label();
             end_label = new_label();
 
-            /*
-             * Loop begin
-             */
+            /* Mark the head of loop */
             fprintf(
                 out,
                 ".L%d:\n",
                 begin_label
             );
 
-            /*
-             * condition → RAX
-             */
+            /* Evaluate loop condition */
             generate_expression(
                 stmt->condition,
                 out
@@ -675,33 +605,27 @@ static void generate_statements(
                 "    cmp rax, 0\n"
             );
 
+            /* Break loop if false */
             fprintf(
                 out,
                 "    je .L%d\n",
                 end_label
             );
 
-            /*
-             * body
-             */
+            /* Evaluate loop body statements */
             generate_statements(
                 stmt->body,
                 stmt->body_count,
                 out
             );
 
-            /*
-             * repeat
-             */
+            /* Re-test condition */
             fprintf(
                 out,
                 "    jmp .L%d\n",
                 begin_label
             );
 
-            /*
-             * end
-             */
             fprintf(
                 out,
                 ".L%d:\n",
@@ -717,20 +641,16 @@ static void generate_statements(
  * Function Generation
  * ========================================================= */
 
+/* Synthesizes assembly code, stack prologue, and epilogue for a single C function */
 static void generate_function(
     Function *function,
     FILE *out)
 {
     int i;
 
-    /*
-     * Reset function-specific information
-     */
     reset_variables();
 
-    /*
-     * Parameters occupy stack slots.
-     */
+    /* Load function parameters first so they occupy early stack slots */
     for (i = 0;
          i < function->param_count;
          i++) {
@@ -740,25 +660,16 @@ static void generate_function(
         );
     }
 
-    /*
-     * Local variables
-     */
+    /* Collect all variables declared in the body */
     collect_variables(
         function->body,
         function->body_count
     );
 
-    /*
-     * Stack alignment.
-     *
-     * Keep it 16-byte aligned.
-     */
+    /* Enforce x86-64 standard 16-byte stack frame alignment requirement */
     if (stack_size % 16 != 0)
         stack_size += 16 - (stack_size % 16);
 
-    /*
-     * Function label
-     */
     fprintf(
         out,
         "\n.globl %s\n",
@@ -771,9 +682,7 @@ static void generate_function(
         function->name
     );
 
-    /*
-     * Function prologue
-     */
+    /* Prologue: setup standard base pointer */
     fprintf(
         out,
         "    push rbp\n"
@@ -793,9 +702,7 @@ static void generate_function(
         );
     }
 
-    /*
-     * Save parameters into their stack slots.
-     */
+    /* Save parameter values passed from registers into stack-based variables */
     for (i = 0;
          i < function->param_count;
          i++) {
@@ -823,26 +730,20 @@ static void generate_function(
         );
     }
 
-    /*
-     * Function body
-     */
+    /* Execute the statements inside function body */
     generate_statements(
         function->body,
         function->body_count,
         out
     );
 
-    /*
-     * Default return value
-     */
+    /* Implicit fallback return value */
     fprintf(
         out,
         "    mov rax, 0\n"
     );
 
-    /*
-     * Function epilogue
-     */
+    /* Epilogue: restore base pointer and return */
     fprintf(
         out,
         "    mov rsp, rbp\n"
@@ -863,6 +764,7 @@ static void generate_function(
  * Program Generation
  * ========================================================= */
 
+/* Generates GAS-Intel formatted x86-64 assembly instructions for the entire Program AST */
 void generate_code(
     Program *program,
     FILE *output)
@@ -884,9 +786,6 @@ void generate_code(
         "# Generated automatically\n\n"
     );
 
-    /*
-     * GAS Intel syntax
-     */
     fprintf(
         output,
         ".intel_syntax noprefix\n\n"

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "compiler.h"
+#include "interpreter.h"
 
 int main(int argc, char *argv[])
 {
@@ -14,5 +15,10 @@ int main(int argc, char *argv[])
     }
 
     printf("Compilation successful.\n");
+
+    /* Execute the generated assembly */
+    int64_t result = run_interpreter("output.txt");
+    printf("Execution result: %lld\n", result);
+
     return 0;
 }

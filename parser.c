@@ -15,16 +15,19 @@ static int current_token;
  * Utility
  * ========================================================= */
 
+/* Returns the token at the current position. */
 static Token *current(void)
 {
     return &tokens->tokens[current_token];
 }
 
+/* Checks if the current token matches the specified type. */
 static int check(TokenType type)
 {
     return current()->type == type;
 }
 
+/* Advances the cursor and returns the previous token. */
 static Token *advance_token(void)
 {
     Token *token = current();
@@ -35,6 +38,7 @@ static Token *advance_token(void)
     return token;
 }
 
+/* Advances if the current token matches the specified type. Returns 1 if matched. */
 static int match(TokenType type)
 {
     if (check(type)) {
@@ -45,6 +49,7 @@ static int match(TokenType type)
     return 0;
 }
 
+/* Asserts that the current token is of the expected type, then advances. */
 static Token *expect(TokenType type)
 {
     if (!check(type)) {
@@ -91,35 +96,25 @@ static Statement *new_statement(void)
 /* =========================================================
  * Expression Parser
  *
- * expression
- *     -> comparison
+ * Implements operator precedence rules using a classic top-down
+ * recursive descent pattern. Precedence increases downwards:
  *
- * comparison
- *     -> addition (comparison_op addition)*
- *
- * addition
- *     -> multiplication ((+|-) multiplication)*
- *
- * multiplication
- *     -> primary ((*|/) primary)*
- *
- * primary
- *     -> NUMBER
- *     -> IDENTIFIER
- *     -> IDENTIFIER(...)
- *     -> '(' expression ')'
+ *     parse_expression()     -> parse_comparison()
+ *     parse_comparison()     -> parse_addition()      (==, !=, <, >, <=, >=)
+ *     parse_addition()       -> parse_multiplication() (+, -)
+ *     parse_multiplication() -> parse_primary()       (*, /)
+ *     parse_primary()        -> lowest-level terms     (nums, vars, calls, parens)
  * ========================================================= */
 
 static Expr *parse_expression(void);
 
+/* Parses atomic expressions: numbers, variables, function calls, or sub-expressions */
 static Expr *parse_primary(void)
 {
     Expr *expr;
     Token *token;
 
-    /*
-     * Integer
-     */
+    /* Integer Literal */
     if (check(TOKEN_NUMBER)) {
 
         token = advance_token();
@@ -132,18 +127,12 @@ static Expr *parse_primary(void)
         return expr;
     }
 
-    /*
-     * Identifier / function call
-     */
+    /* Identifier-based: Variable Reference or Function Call */
     if (check(TOKEN_IDENTIFIER)) {
 
         token = advance_token();
 
-        /*
-         * Function call
-         *
-         * foo(...)
-         */
+        /* If followed by '(', parse as a function call with argument list */
         if (match(TOKEN_LPAREN)) {
 
             expr = new_expr();
@@ -155,9 +144,6 @@ static Expr *parse_primary(void)
             expr->args = NULL;
             expr->arg_count = 0;
 
-            /*
-             * Arguments
-             */
             if (!check(TOKEN_RPAREN)) {
 
                 while (1) {
@@ -198,9 +184,7 @@ static Expr *parse_primary(void)
             return expr;
         }
 
-        /*
-         * Normal variable
-         */
+        /* Simple variable access */
         expr = new_expr();
 
         expr->type = EXPR_VARIABLE;
@@ -210,9 +194,7 @@ static Expr *parse_primary(void)
         return expr;
     }
 
-    /*
-     * Parenthesized expression
-     */
+    /* Grouped sub-expression inside parentheses */
     if (match(TOKEN_LPAREN)) {
 
         expr = parse_expression();
@@ -230,6 +212,7 @@ static Expr *parse_primary(void)
     return NULL;
 }
 
+/* Parses multiplicative arithmetic operators (*, /) */
 static Expr *parse_multiplication(void)
 {
     Expr *left;
@@ -263,6 +246,7 @@ static Expr *parse_multiplication(void)
     return left;
 }
 
+/* Parses additive arithmetic operators (+, -) */
 static Expr *parse_addition(void)
 {
     Expr *left;
@@ -296,6 +280,7 @@ static Expr *parse_addition(void)
     return left;
 }
 
+/* Parses relational and equality comparison operators */
 static Expr *parse_comparison(void)
 {
     Expr *left;
@@ -333,15 +318,17 @@ static Expr *parse_comparison(void)
     return left;
 }
 
+/* Wrapper entrypoint for parsing any generic expression */
 static Expr *parse_expression(void)
 {
     return parse_comparison();
 }
 
 /* =========================================================
- * Statement List
+ * Statement List Management
  * ========================================================= */
 
+/* Appends a new statement to a dynamic array of statements (block or body) */
 static void add_statement(
     Statement ***array,
     int *count,
@@ -367,9 +354,10 @@ static void add_statement(
 }
 
 /* =========================================================
- * Block
+ * Block Parsing
  * ========================================================= */
 
+/* Parses statement sequences enclosed within curly braces `{ ... }` */
 static void parse_block_contents(
     Statement ***statements,
     int *count)
@@ -382,9 +370,6 @@ static void parse_block_contents(
     ) {
         Statement *stmt;
 
-        /*
-         * Statement parser is defined below.
-         */
         extern Statement *parse_statement_for_block(void);
 
         stmt = parse_statement_for_block();
@@ -401,16 +386,15 @@ static void parse_block_contents(
 }
 
 /* =========================================================
- * Statements
+ * Statements Parsing
  * ========================================================= */
 
+/* Parses individual statements supported by the C language subset */
 Statement *parse_statement_for_block(void)
 {
     Statement *stmt;
 
-    /*
-     * int x;
-     */
+    /* Variable Declaration: e.g., 'int x;' */
     if (match(TOKEN_INT)) {
 
         Token *name;
@@ -431,9 +415,7 @@ Statement *parse_statement_for_block(void)
         return stmt;
     }
 
-    /*
-     * return expression;
-     */
+    /* Return Statement: e.g., 'return expr;' */
     if (match(TOKEN_RETURN)) {
 
         Expr *expr;
@@ -450,9 +432,7 @@ Statement *parse_statement_for_block(void)
         return stmt;
     }
 
-    /*
-     * if (condition) { ... }
-     */
+    /* Conditional Branch: e.g., 'if (cond) { ... } [else { ... }]' */
     if (match(TOKEN_IF)) {
 
         stmt = new_statement();
@@ -476,9 +456,6 @@ Statement *parse_statement_for_block(void)
             &stmt->body_count
         );
 
-        /*
-         * else
-         */
         if (match(TOKEN_ELSE)) {
 
             parse_block_contents(
@@ -490,9 +467,7 @@ Statement *parse_statement_for_block(void)
         return stmt;
     }
 
-    /*
-     * while (condition) { ... }
-     */
+    /* Iteration Loop: e.g., 'while (cond) { ... }' */
     if (match(TOKEN_WHILE)) {
 
         stmt = new_statement();
@@ -516,11 +491,7 @@ Statement *parse_statement_for_block(void)
         return stmt;
     }
 
-    /*
-     * Assignment
-     *
-     * x = expression;
-     */
+    /* Variable Assignment: e.g., 'x = expr;' */
     if (check(TOKEN_IDENTIFIER)) {
 
         Token *name;
@@ -552,24 +523,19 @@ Statement *parse_statement_for_block(void)
 }
 
 /* =========================================================
- * Function
+ * Function Parsing
  * ========================================================= */
 
+/* Parses a C-style function signature, argument list, and block body */
 static Function *parse_function(void)
 {
     Function *function;
 
     Token *name;
 
-    /*
-     * int
-     */
     if (!expect(TOKEN_INT))
         return NULL;
 
-    /*
-     * function name
-     */
     name = expect(TOKEN_IDENTIFIER);
 
     if (name == NULL)
@@ -584,16 +550,9 @@ static Function *parse_function(void)
 
     strcpy(function->name, name->text);
 
-    /*
-     * (
-     */
     expect(TOKEN_LPAREN);
 
-    /*
-     * parameters
-     *
-     * int a, int b
-     */
+    /* Parse function parameters if any */
     if (!check(TOKEN_RPAREN)) {
 
         while (1) {
@@ -648,9 +607,6 @@ static Function *parse_function(void)
 
     expect(TOKEN_RPAREN);
 
-    /*
-     * Function body
-     */
     function->body = NULL;
     function->body_count = 0;
 
@@ -663,9 +619,10 @@ static Function *parse_function(void)
 }
 
 /* =========================================================
- * Program
+ * Top-Level Program Parser
  * ========================================================= */
 
+/* Initiates compilation parsing over the entire scanned token sequence */
 Program *parse(TokenList *input_tokens)
 {
     Program *program;
@@ -716,7 +673,7 @@ Program *parse(TokenList *input_tokens)
 }
 
 /* =========================================================
- * Free AST
+ * AST Memory Deallocation
  * ========================================================= */
 
 static void free_expr(Expr *expr)
