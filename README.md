@@ -1,15 +1,20 @@
 # `mini_cc`: An Educational Compiler & Virtual Machine
 
 ## Project Background & Workflow
-This repository is an educational project developed to explore the fundamentals of compiler engineering and virtual machine (VM) design.
+This repository serves two equally significant purposes: it is an **educational compiler engineering project** and a **case study on AI-assisted software development**.
 
-### Why and How this was created:
-*   **Purpose**: To revisit and deepen knowledge of compiler construction and VM architecture.
-*   **Workflow**: This project was built using the **Gemini CLI** agent as my primary pair programmer. I acted as the lead engineer, focusing on code review and architectural understanding, while delegating repetitive tasks and implementation details to the AI.
-*   **AI Constraints & Strategy**: As I am using the free tier of Gemini, I encountered token limits within the CLI. To work around this, I utilized a hybrid approach:
-    *   **Web-based AI**: Used to generate complex code blocks, research algorithms, and draft initial structures when CLI tokens were constrained.
-    *   **Gemini CLI**: Used for final implementation, file management, repository synchronization, writing educational comments, and restructuring the README to ensure code quality and project structure.
-*   **Manual Oversight**: My role was primarily to review the AI-generated output, verify the compiler logic, and ensure the educational quality of this documentation.
+### 1. Compiler & Virtual Machine Engineering
+The project aims to build a functional, self-contained C compiler and x86-64 emulator from scratch. By avoiding high-level generator tools, it provides a transparent, ground-up understanding of:
+*   **Compilation**: Lexical analysis, recursive descent parsing, AST construction, and stack-machine code generation.
+*   **Execution**: Implementing a virtual machine that emulates CPU registers, virtual memory, and instruction set execution.
+
+### 2. AI-Assisted Development Methodology
+Equally, this repo demonstrates a practical workflow for collaborative development between a human engineer and an AI agent (Gemini CLI):
+*   **Role Definition**: I acted as the lead engineer, defining the architecture, reviewing code, and ensuring educational clarity, while utilizing Gemini as a pair programmer to handle implementation tasks.
+*   **Hybrid AI Strategy**: Due to CLI-based token constraints, I utilized a hybrid approach:
+    *   **Web-based AI**: Leveraged for complex algorithm research, structural drafting, and rapid prototyping.
+    *   **Gemini CLI**: Used for codebase management, surgical code edits, educational annotation, and repository synchronization.
+*   **Educational Focus**: The primary goal wasn't just to "get it working," but to ensure the code and documentation serve as a high-quality teaching resource for anyone learning these low-level concepts.
 
 ---
 
