@@ -1,7 +1,7 @@
 # C-Compiler & VM: A Free-Tier AI Agent Practice
 
-## Project Background
-I wanted to learn how AI Agents work, but I don't have a paid AI subscription. So, I decided to build a custom C-like compiler and Virtual Machine from scratch using free AI tools, using this project to learn agentic workflows and refresh my compiler fundamentals at the same time.
+## Background
+I wanted to understand how AI Agents work in practice, but without a paid AI subscription, I decided to build a custom C-like compiler and Virtual Machine from scratch using free AI tools. This allowed me to explore agentic workflows firsthand while refreshing my compiler fundamentals at the same time.
 
 ### Development Workflow
 The entire system was handcrafted without tools like Flex or Bison. Because I was using free-tier AI with strict rate and token limits, I used a split workflow:
