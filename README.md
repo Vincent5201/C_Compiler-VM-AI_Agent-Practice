@@ -1,26 +1,30 @@
 # `mini_cc`: An Educational Compiler & Virtual Machine
 
-## Project Background & Workflow
-This repository serves two equally significant purposes: it is an **educational compiler engineering project** and a **case study on AI-assisted software development**.
+## Project Background
+`mini_cc` is a lightweight, self-contained C compiler and x86-64 emulator implemented entirely from scratch in pure C. It compiles a structured subset of C into Intel-syntax x86-64 assembly targeting the Linux System V AMD64 ABI, and executes it using a built-in virtual machine (interpreter).
 
-### 1. Compiler & Virtual Machine Engineering
-The project aims to build a functional, self-contained C compiler and x86-64 emulator from scratch. By avoiding high-level generator tools, it provides a transparent, ground-up understanding of:
-*   **Compilation**: Lexical analysis, recursive descent parsing, AST construction, and stack-machine code generation.
-*   **Execution**: Implementing a virtual machine that emulates CPU registers, virtual memory, and instruction set execution.
+This repository serves as both an educational playground for low-level engineering and a practical case study in AI-assisted development.
 
-### 2. AI-Assisted Development Methodology
-Equally, this repo demonstrates a practical workflow for collaborative development between a human engineer and an AI agent (Gemini CLI):
-*   **Role Definition**: I acted as the lead engineer, defining the architecture, reviewing code, and ensuring educational clarity, while utilizing Gemini as a pair programmer to handle implementation tasks.
-*   **Hybrid AI Strategy**: Due to CLI-based token constraints, I utilized a hybrid approach:
-    *   **Web-based AI**: Leveraged for complex algorithm research, structural drafting, and rapid prototyping.
-    *   **Gemini CLI**: Used for codebase management, surgical code edits, educational annotation, and repository synchronization.
-*   **Educational Focus**: The primary goal wasn't just to "get it working," but to ensure the code and documentation serve as a high-quality teaching resource for anyone learning these low-level concepts.
+### Development Workflow
+This project was developed by a human engineer in collaboration with an AI pair programmer.
+*   **The Approach**: By avoiding third-party generator tools like Flex or Bison, I built every component by hand to gain a transparent, ground-up understanding of lexical scanning, recursive descent parsing, AST construction, stack-machine code generation, and CPU emulation.
+*   **AI Collaboration**: Throughout this process, I acted as the lead engineer—defining architecture, verifying logic, and ensuring educational clarity—while delegating repetitive implementation tasks to the AI.
+*   **Transparency regarding AI Usage**: This project was developed using free-tier AI models. To navigate the token constraints of the CLI-based agent, I adopted a hybrid strategy:
+    *   **Web-based AI**: Used to research complex algorithms, draft initial structural code, and prototype logic when the CLI context was limited.
+    *   **Gemini CLI**: Used to finalize implementation, manage codebase structure, and write educational annotations.
+    *   *Note*: The code and documentation quality reflect this collaborative process, aimed at balancing rapid iteration with rigorous manual verification.
 
 ---
 
-Welcome to **`mini_cc`**, a lightweight, self-contained C compiler implemented entirely from scratch in pure C. It compiles a structured subset of C into Intel-syntax x86-64 assembly targeting the Linux System V AMD64 ABI, and then executes it using a built-in custom virtual machine (interpreter).
-
-As an **educational playground**, `mini_cc` completely avoids third-party generator tools like Flex (lexical scanners) or Bison/Yacc (LALR parsers). Writing every component by hand offers a highly transparent, ground-up perspective on compiler engineering, structural parsing, abstract syntax trees (AST), stack-machine code generation, and instruction set emulation.
+## Table of Contents
+1. [Overall Pipeline & Architecture](#1-overall-pipeline--architecture)
+2. [Language & Grammar Specifications](#2-language--grammar-specifications)
+3. [Phase 1: Lexical Analysis (The Scanner)](#3-phase-1-lexical-analysis-the-scanner)
+4. [Phase 2: Syntactic Analysis (The Parser)](#4-phase-2-syntactic-analysis-the-parser)
+5. [Phase 3: Code Generation (The CodeGen)](#5-phase-3-code-generation-the-codegen)
+6. [Phase 4: Execution (The Assembly Interpreter/VM)](#6-phase-4-execution-the-assembly-interpretervm)
+7. [Step-by-Step Educational Walkthrough](#7-step-by-step-educational-walkthrough)
+8. [Build, Test, and Execution Guide](#8-build-test-and-execution-guide)
 
 ---
 
