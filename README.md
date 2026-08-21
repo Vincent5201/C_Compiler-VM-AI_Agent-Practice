@@ -3,7 +3,6 @@
 ## Background
 I wanted to understand how AI Agents work in practice, but without a paid AI subscription, I decided to build a custom C-like compiler and Virtual Machine from scratch using free AI tools. This allowed me to explore agentic workflows firsthand while refreshing my compiler fundamentals at the same time.
 
-### Development Workflow
 The entire system was handcrafted without tools like Flex or Bison. Because I was using free-tier AI with strict rate and token limits, I used a split workflow:
 * Web AI: Used for heavy code generation and complex logic, avoiding context limits in the CLI.
 * Gemini CLI: Used directly in the terminal to structure files, refactor code, and write documentation with the generated code.
