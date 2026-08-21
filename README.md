@@ -1,18 +1,17 @@
 # `mini_cc`: An Educational Compiler & Virtual Machine
 
 ## Project Background
-`mini_cc` is a lightweight, self-contained C compiler and x86-64 emulator implemented entirely from scratch in pure C. It compiles a structured subset of C into Intel-syntax x86-64 assembly targeting the Linux System V AMD64 ABI, and executes it using a built-in virtual machine (interpreter).
+This is a fun, hands-on experiment. I wanted to see what I could build using AI Agents, so I decided to tackle something classic: a C compiler and a Virtual Machine (VM) to run it. It’s a great way to brush up on low-level programming concepts like lexical analysis, parsing, and assembly execution—all built from scratch.
 
-This repository serves as both an educational playground for low-level engineering and a practical case study in AI-assisted development.
+This repository serves as both a personal educational playground for compiler engineering and a log of my experiment in AI-assisted development.
 
 ### Development Workflow
-This project was developed by a human engineer in collaboration with an AI pair programmer.
-*   **The Approach**: By avoiding third-party generator tools like Flex or Bison, I built every component by hand to gain a transparent, ground-up understanding of lexical scanning, recursive descent parsing, AST construction, stack-machine code generation, and CPU emulation.
-*   **AI Collaboration**: Throughout this process, I acted as the lead engineer—defining architecture, verifying logic, and ensuring educational clarity—while delegating repetitive implementation tasks to the AI.
-*   **Transparency regarding AI Usage**: This project was developed using free-tier AI models. To navigate the token constraints of the CLI-based agent, I adopted a hybrid strategy:
-    *   **Web-based AI**: Used to research complex algorithms, draft initial structural code, and prototype logic when the CLI context was limited.
-    *   **Gemini CLI**: Used to finalize implementation, manage codebase structure, and write educational annotations.
-    *   *Note*: The code and documentation quality reflect this collaborative process, aimed at balancing rapid iteration with rigorous manual verification.
+Building this project was a collaborative effort between myself and an AI pair programmer.
+*   **The Approach**: Instead of using heavy-duty tools like Flex or Bison, I built every part of the compiler and VM by hand. This made it much easier to actually understand what's happening at every step—scanning, parsing, generating assembly, and running the VM.
+*   **The Workflow**: My role was to define the goal and verify the results. I had to be practical about AI usage:
+    *   **Web-based AI**: Since I'm using the free version of AI, I often ran into token limits in the CLI. When I needed to generate complex code, I used the web version of the AI to get the code I needed.
+    *   **Gemini CLI**: Once I had the code ready, I pasted it back into the CLI environment. The CLI agent then helped me organize the files, write educational comments, and restructure this documentation.
+*   *Note*: This setup wasn't perfect, but it was a very effective way to get things done with the free tools available.
 
 ---
 
