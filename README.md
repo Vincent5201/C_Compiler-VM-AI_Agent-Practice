@@ -172,21 +172,31 @@ Every local variable is mapped to a location on the stack frame relative to the 
 
 *Files: `interpreter.h`, `interpreter.c`*
 
-Rather than relying on local assembly tools or host operating systems to run code, `mini_cc` embeds a custom virtual machine designed to emulate an x86-64 microprocessor.
+Instead of relying on an external assembler or linker to generate a native binary, `mini_cc` includes a built-in **Instruction Set Simulator (Virtual Machine)**. This VM is responsible for executing the assembly output (`output.txt`) produced by the CodeGen stage.
 
-### VM Core Components
-*   **Registers**: Struct mapping standard x86 registers (`rax`, `rbx`, `rcx`, `rdx`, `rbp`, `rsp`, `rip`, etc.).
-*   **Virtual RAM**: A block of allocated memory (2 MB) acting as the computer's physical address space.
-*   **Stack Pointer (`RSP`)**: Set to start at the top of memory (`MEMORY_SIZE - 16`) growing downwards.
-*   **CPU Flag registers (EFLAGS)**: Simulates standard ALU evaluation flags (`ZF` (Zero), `SF` (Sign), `OF` (Overflow), `CF` (Carry)).
-*   **The Execution Loop**: Matches instructions mapped by the instruction pointer `rip`, decodes arguments, runs address calculations, modifies memory/registers, and adjusts ALU flags.
+### How the VM Works
+The VM simulates a physical CPU by maintaining a distinct state structure and executing instructions in a loop:
 
-### Defect Security: Safe Virtual RAM Boundaries
-To prevent boundary leaks or buffer overflow exploits inside VM virtual registers, memory reads and writes use a secure bounds checking rule that is proof against integer overflow wrap-around:
-```c
-if (address > (u64)MEMORY_SIZE - (u64)size)
-    error("memory write/read out of range");
-```
+#### 1. Core State Structures (`CPU` Struct)
+The `CPU` struct represents the virtual hardware environment:
+*   **Registers**: A structure mimicking standard x86-64 registers (`rax`, `rbx`, `rcx`, `rdx`, `rbp`, `rsp`, `rip`, etc.).
+*   **Virtual RAM**: A 2MB allocated memory block acting as physical RAM.
+*   **Stack Pointer (`RSP`)**: Initialized to the top of the virtual RAM (`MEMORY_SIZE - 16`) and grows downwards, simulating stack behavior.
+*   **ALU Flags (EFLAGS)**: Simulates the microprocessor's internal status flags (`ZF`=Zero, `SF`=Sign, `OF`=Overflow, `CF`=Carry) which are essential for conditional branching logic (e.g., `je`, `cmp`).
+
+#### 2. The Execution Loop
+The heart of the VM is the `execute()` function, called repeatedly in a `while` loop within `run_program()`:
+1.  **Instruction Fetch**: It reads the instruction at the address currently pointed to by the `Instruction Pointer` (`rip`).
+2.  **Instruction Decoding**: The opcode (`op`) string is matched against a list of supported assembly instructions (e.g., `mov`, `push`, `pop`, `add`, `idiv`, `je`, `call`).
+3.  **Instruction Execution**: Depending on the decoded opcode, the VM performs operations on its internal `CPU` registers, updates `memory` array contents, or jumps to a new `rip`.
+4.  **Security**: The interpreter performs rigorous **memory bounds checking** to ensure the code does not access memory outside the 2MB virtual RAM. It also employs a `MAX_STEPS` counter to detect and halt infinite loops.
+
+#### 3. Handling Branching and Labels
+The `parse_program()` function pre-scans the assembly code to map all branch labels (e.g., `.L0`, `.L1`) to their corresponding instruction index. When the VM executes a jump instruction like `je .L0` or `jmp .L1`, it looks up the target index in this label map and updates the `rip`, facilitating complex control flow like `if` blocks and `while` loops.
+
+### Key Implementation Details
+*   **Register Mapping**: Because x86-64 has complex register naming (64-bit `rax`, 32-bit `eax`, 8-bit `al`), the interpreter implements a helper function (`read_register` / `write_register`) to correctly map these names to the underlying 64-bit storage.
+*   **Stack Emulator**: The VM manually manages the stack through `push()` and `pop()` functions that decrement/increment `rsp` and read/write to the `memory` array, ensuring complete separation from the host system's stack.
 
 ---
 
